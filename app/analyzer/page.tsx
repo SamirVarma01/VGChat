@@ -9,45 +9,67 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, LinkIcon, Zap, Shield, Target, AlertTriangle, CheckCircle, TrendingUp, ArrowLeft } from "lucide-react"
+import { Upload, LinkIcon, Zap, Shield, Target, AlertTriangle, CheckCircle, TrendingUp, ArrowLeft, X } from "lucide-react"
 import Link from "next/link"
+import { validatePokemonTeam, type PokemonTeam } from "@/lib/team-validation"
+import { analyzeTeam, type LLMAnalysisResult } from "@/lib/api"
 
 export default function TeamAnalyzer() {
   const [teamData, setTeamData] = useState("")
   const [pasteUrl, setPasteUrl] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<any>(null)
+  const [analysisResult, setAnalysisResult] = useState<LLMAnalysisResult | null>(null)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [isValidating, setIsValidating] = useState(false)
+
+  const validateTeam = (teamText: string) => {
+    setIsValidating(true)
+    const validation = validatePokemonTeam(teamText)
+    setValidationErrors(validation.errors)
+    setIsValidating(false)
+    return validation.isValid
+  }
 
   const handleAnalyze = async () => {
+    const teamToAnalyze = teamData || pasteUrl
+    
+    if (!teamToAnalyze) {
+      setValidationErrors(["Please provide team data to analyze"])
+      return
+    }
+
+    // Validate team format first
+    if (!validateTeam(teamToAnalyze)) {
+      return
+    }
+
     setIsAnalyzing(true)
-    // Simulate API call
-    setTimeout(() => {
-      setAnalysisResult({
-        teamSynergy: 85,
-        threats: [
-          { name: "Landorus-Therian", severity: "high", reason: "Outspeeds and OHKOs 3 team members" },
-          { name: "Incineroar", severity: "medium", reason: "Intimidate weakens physical attackers" },
-          { name: "Flutter Mane", severity: "high", reason: "Resists most of your attacks" },
-          { name: "Gholdengo", severity: "medium", reason: "Immune to status moves" },
-        ],
-        strengths: [
-          "Strong late-game potential with Trick Room",
-          "Good type coverage against common threats",
-          "Solid defensive core with regenerator",
-        ],
-        weaknesses: [
-          "Vulnerable to Electric-type moves",
-          "Lacks priority moves",
-          "Weak to common Fighting-type attacks",
-        ],
-        recommendations: [
-          "Consider adding Thunder Wave for speed control",
-          "Replace one Pokemon with an Electric resist",
-          "Add a priority move user for late-game cleanup",
-        ],
-      })
+    setAnalysisResult(null)
+
+    try {
+      const result = await analyzeTeam(teamToAnalyze)
+      setAnalysisResult(result)
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      setValidationErrors(['Failed to analyze team. Please try again.'])
+    } finally {
       setIsAnalyzing(false)
-    }, 2000)
+    }
+  }
+
+  const clearErrors = () => {
+    setValidationErrors([])
+  }
+
+  const getGradeColor = (grade: string) => {
+    switch (grade) {
+      case 'A': return 'bg-green-500'
+      case 'B': return 'bg-blue-500'
+      case 'C': return 'bg-yellow-500'
+      case 'D': return 'bg-orange-500'
+      case 'F': return 'bg-red-500'
+      default: return 'bg-gray-500'
+    }
   }
 
   return (
@@ -80,6 +102,33 @@ export default function TeamAnalyzer() {
             <p className="text-gray-600">Import your team and get AI-powered strategic analysis</p>
           </div>
 
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <Alert className="mb-6 border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-700">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <strong>Team Format Issues:</strong>
+                    <ul className="mt-2 space-y-1">
+                      {validationErrors.map((error, index) => (
+                        <li key={index} className="text-sm">• {error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearErrors}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Input Section */}
             <Card>
@@ -100,7 +149,12 @@ export default function TeamAnalyzer() {
                     <Textarea
                       placeholder="Paste your team export from Pokemon Showdown here..."
                       value={teamData}
-                      onChange={(e) => setTeamData(e.target.value)}
+                      onChange={(e) => {
+                        setTeamData(e.target.value)
+                        if (validationErrors.length > 0) {
+                          clearErrors()
+                        }
+                      }}
                       className="min-h-[200px]"
                     />
                   </TabsContent>
@@ -108,7 +162,12 @@ export default function TeamAnalyzer() {
                     <Input
                       placeholder="https://pokepaste.es/..."
                       value={pasteUrl}
-                      onChange={(e) => setPasteUrl(e.target.value)}
+                      onChange={(e) => {
+                        setPasteUrl(e.target.value)
+                        if (validationErrors.length > 0) {
+                          clearErrors()
+                        }
+                      }}
                     />
                     <Alert>
                       <LinkIcon className="h-4 w-4" />
@@ -120,13 +179,18 @@ export default function TeamAnalyzer() {
                 </Tabs>
                 <Button
                   onClick={handleAnalyze}
-                  disabled={isAnalyzing || (!teamData && !pasteUrl)}
+                  disabled={isAnalyzing || isValidating || (!teamData && !pasteUrl)}
                   className="w-full mt-4"
                 >
                   {isAnalyzing ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Analyzing Team...
+                    </>
+                  ) : isValidating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Validating Team...
                     </>
                   ) : (
                     <>
@@ -152,15 +216,14 @@ export default function TeamAnalyzer() {
               <CardContent>
                 {analysisResult ? (
                   <div className="space-y-6">
-                    {/* Team Synergy Score */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Team Synergy Score</span>
-                        <Badge variant={analysisResult.teamSynergy >= 80 ? "default" : "secondary"}>
-                          {analysisResult.teamSynergy}%
-                        </Badge>
-                      </div>
-                      <Progress value={analysisResult.teamSynergy} className="h-2" />
+                    {/* Team Grade */}
+                    <div className="text-center">
+                      <div className="text-2xl font-bold mb-2">Team Grade</div>
+                      <Badge 
+                        className={`text-white text-lg px-4 py-2 ${getGradeColor(analysisResult.grade)}`}
+                      >
+                        {analysisResult.grade}
+                      </Badge>
                     </div>
 
                     {/* Quick Stats */}
@@ -174,7 +237,7 @@ export default function TeamAnalyzer() {
                         <div className="text-xs text-green-600">Key Strengths</div>
                       </div>
                       <div className="p-3 bg-blue-50 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{analysisResult.recommendations.length}</div>
+                        <div className="text-2xl font-bold text-blue-600">{analysisResult.suggestions.length}</div>
                         <div className="text-xs text-blue-600">Suggestions</div>
                       </div>
                     </div>
@@ -197,7 +260,7 @@ export default function TeamAnalyzer() {
                   <TabsTrigger value="threats">Threats</TabsTrigger>
                   <TabsTrigger value="strengths">Strengths</TabsTrigger>
                   <TabsTrigger value="weaknesses">Weaknesses</TabsTrigger>
-                  <TabsTrigger value="recommendations">Tips</TabsTrigger>
+                  <TabsTrigger value="suggestions">Tips</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="threats" className="space-y-4">
@@ -209,14 +272,14 @@ export default function TeamAnalyzer() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {analysisResult.threats.map((threat: any, index: number) => (
+                      {analysisResult.threats.map((threat, index) => (
                         <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                          <Badge variant={threat.severity === "high" ? "destructive" : "secondary"}>
-                            {threat.severity}
+                          <Badge variant="destructive">
+                            High
                           </Badge>
                           <div>
-                            <div className="font-medium">{threat.name}</div>
-                            <div className="text-sm text-gray-600">{threat.reason}</div>
+                            <div className="font-medium">{threat.point}</div>
+                            <div className="text-sm text-gray-600 mt-1">{threat.reasoning}</div>
                           </div>
                         </div>
                       ))}
@@ -233,13 +296,16 @@ export default function TeamAnalyzer() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {analysisResult.strengths.map((strength: string, index: number) => (
+                      {analysisResult.strengths.map((strength, index) => (
                         <div
                           key={index}
                           className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg"
                         >
                           <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                          <div className="text-sm">{strength}</div>
+                          <div>
+                            <div className="text-sm font-medium">{strength.point}</div>
+                            <div className="text-sm text-gray-600 mt-1">{strength.reasoning}</div>
+                          </div>
                         </div>
                       ))}
                     </CardContent>
@@ -255,20 +321,23 @@ export default function TeamAnalyzer() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {analysisResult.weaknesses.map((weakness: string, index: number) => (
+                      {analysisResult.weaknesses.map((weakness, index) => (
                         <div
                           key={index}
                           className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg"
                         >
                           <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5" />
-                          <div className="text-sm">{weakness}</div>
+                          <div>
+                            <div className="text-sm font-medium">{weakness.point}</div>
+                            <div className="text-sm text-gray-600 mt-1">{weakness.reasoning}</div>
+                          </div>
                         </div>
                       ))}
                     </CardContent>
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="recommendations" className="space-y-4">
+                <TabsContent value="suggestions" className="space-y-4">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -277,13 +346,15 @@ export default function TeamAnalyzer() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {analysisResult.recommendations.map((rec: string, index: number) => (
+                      {analysisResult.suggestions.map((suggestion, index) => (
                         <div
                           key={index}
                           className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg"
                         >
                           <TrendingUp className="h-5 w-5 text-blue-500 mt-0.5" />
-                          <div className="text-sm">{rec}</div>
+                          <div>
+                            <div className="text-sm font-medium">{suggestion.description}</div>
+                          </div>
                         </div>
                       ))}
                     </CardContent>

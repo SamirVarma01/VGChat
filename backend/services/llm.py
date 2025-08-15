@@ -147,9 +147,24 @@ def analyze_team_with_llm(team_data: str) -> dict:
         
         {
             "grade": "A/B/C/D/F",
-            "strengths": ["strength1", "strength2", ...],
-            "weaknesses": ["weakness1", "weakness2", ...],
-            "threats": ["threat1", "threat2", ...],
+            "strengths": [
+                {
+                    "point": "specific strength",
+                    "reasoning": "explanation of why this is a strength"
+                }
+            ],
+            "weaknesses": [
+                {
+                    "point": "specific weakness",
+                    "reasoning": "explanation of why this is a weakness"
+                }
+            ],
+            "threats": [
+                {
+                    "point": "specific threat",
+                    "reasoning": "explanation of why this is a threat"
+                }
+            ],
             "suggestions": [
                 {
                     "type": "move_change/item_change/ability_change/pokemon_swap",
@@ -166,7 +181,9 @@ def analyze_team_with_llm(team_data: str) -> dict:
         - Item optimization
         - Move coverage
         - Team composition balance
-        - Current VGC meta trends"""
+        - Current VGC meta trends
+        
+        For each strength, weakness, and threat, provide a clear explanation of WHY it's important."""
         
         user_prompt = f"Please analyze this VGC team:\n\n{team_summary}"
         
@@ -196,18 +213,18 @@ def analyze_team_with_llm(team_data: str) -> dict:
                 # Fallback if no JSON found
                 analysis = {
                     "grade": "B",
-                    "strengths": ["Team analysis completed"],
-                    "weaknesses": ["Could not parse detailed analysis"],
-                    "threats": ["Common meta threats"],
+                    "strengths": [{"point": "Team analysis completed", "reasoning": "Basic analysis was successful"}],
+                    "weaknesses": [{"point": "Could not parse detailed analysis", "reasoning": "LLM response format was unclear"}],
+                    "threats": [{"point": "Common meta threats", "reasoning": "Standard VGC meta considerations apply"}],
                     "suggestions": [{"type": "general", "description": "Consider reviewing team composition", "priority": "medium"}]
                 }
         except json.JSONDecodeError:
             # Fallback if JSON parsing fails
             analysis = {
                 "grade": "B",
-                "strengths": ["Team analysis completed"],
-                "weaknesses": ["Could not parse detailed analysis"],
-                "threats": ["Common meta threats"],
+                "strengths": [{"point": "Team analysis completed", "reasoning": "Basic analysis was successful"}],
+                "weaknesses": [{"point": "Could not parse detailed analysis", "reasoning": "LLM response format was unclear"}],
+                "threats": [{"point": "Common meta threats", "reasoning": "Standard VGC meta considerations apply"}],
                 "suggestions": [{"type": "general", "description": "Consider reviewing team composition", "priority": "medium"}]
             }
         
