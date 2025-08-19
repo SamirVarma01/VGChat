@@ -21,6 +21,8 @@ export default function TeamAnalyzer() {
   const [analysisResult, setAnalysisResult] = useState<LLMAnalysisResult | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isValidating, setIsValidating] = useState(false)
+  const [isFetchingUrl, setIsFetchingUrl] = useState(false)
+  const [fetchedTeamData, setFetchedTeamData] = useState("")
 
   const validateTeam = (teamText: string) => {
     setIsValidating(true)
@@ -30,8 +32,43 @@ export default function TeamAnalyzer() {
     return validation.isValid
   }
 
+  const handleFetchFromUrl = async () => {
+    if (!pasteUrl.trim()) {
+      setValidationErrors(["Please enter a Pokepaste URL"])
+      return
+    }
+
+    setIsFetchingUrl(true)
+    setValidationErrors([])
+    setFetchedTeamData("")
+
+    try {
+      // Use backend API instead of direct fetch to avoid CORS issues
+      const response = await fetch('/api/fetch-pokepaste', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: pasteUrl }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Failed to fetch team')
+      }
+
+      const data = await response.json()
+      setFetchedTeamData(data.team_data)
+      setTeamData(data.team_data) // Also set it in the main team data field
+    } catch (error) {
+      setValidationErrors([`Failed to fetch team from URL: ${error instanceof Error ? error.message : 'Unknown error'}`])
+    } finally {
+      setIsFetchingUrl(false)
+    }
+  }
+
   const handleAnalyze = async () => {
-    const teamToAnalyze = teamData || pasteUrl
+    const teamToAnalyze = teamData || fetchedTeamData
     
     if (!teamToAnalyze) {
       setValidationErrors(["Please provide team data to analyze"])
@@ -59,6 +96,7 @@ export default function TeamAnalyzer() {
 
   const clearErrors = () => {
     setValidationErrors([])
+    setFetchedTeamData("")
   }
 
   const getGradeColor = (grade: string) => {
@@ -82,7 +120,7 @@ export default function TeamAnalyzer() {
             <Zap className="h-5 w-5 text-white" />
           </div>
           <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-transparent">
-            VGC Coach
+            VGChat
           </span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
@@ -140,7 +178,7 @@ export default function TeamAnalyzer() {
                 <CardDescription>Paste your team from Pokemon Showdown or provide a Pokepaste link</CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="paste" className="w-full">
+                <Tabs defaultValue="paste" className="w-full" onValueChange={() => clearErrors()}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="paste">Team Data</TabsTrigger>
                     <TabsTrigger value="url">Pokepaste URL</TabsTrigger>
@@ -159,16 +197,49 @@ export default function TeamAnalyzer() {
                     />
                   </TabsContent>
                   <TabsContent value="url" className="space-y-4">
-                    <Input
-                      placeholder="https://pokepaste.es/..."
-                      value={pasteUrl}
-                      onChange={(e) => {
-                        setPasteUrl(e.target.value)
-                        if (validationErrors.length > 0) {
-                          clearErrors()
-                        }
-                      }}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://pokepaste.es/..."
+                        value={pasteUrl}
+                        onChange={(e) => {
+                          setPasteUrl(e.target.value)
+                          if (validationErrors.length > 0) {
+                            clearErrors()
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={handleFetchFromUrl}
+                        disabled={isFetchingUrl || !pasteUrl.trim()}
+                        variant="outline"
+                      >
+                        {isFetchingUrl ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                            Fetching...
+                          </>
+                        ) : (
+                          <>
+                            <LinkIcon className="h-4 w-4 mr-2" />
+                            Fetch Team
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {fetchedTeamData && (
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-green-700">✓ Team fetched successfully!</div>
+                        <Textarea
+                          value={fetchedTeamData}
+                          onChange={(e) => setTeamData(e.target.value)}
+                          className="min-h-[150px] text-sm"
+                          placeholder="Fetched team data will appear here..."
+                        />
+                      </div>
+                    )}
+                    
                     <Alert>
                       <LinkIcon className="h-4 w-4" />
                       <AlertDescription>
@@ -179,7 +250,7 @@ export default function TeamAnalyzer() {
                 </Tabs>
                 <Button
                   onClick={handleAnalyze}
-                  disabled={isAnalyzing || isValidating || (!teamData && !pasteUrl)}
+                  disabled={isAnalyzing || isValidating || (!teamData && !fetchedTeamData)}
                   className="w-full mt-4"
                 >
                   {isAnalyzing ? (

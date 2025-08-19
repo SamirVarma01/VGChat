@@ -282,7 +282,7 @@ export default function HomePage() {
                   Ready to Elevate Your VGC Game?
                 </h2>
                 <p className="max-w-[800px] text-blue-100 text-lg md:text-xl lg:text-2xl leading-relaxed">
-                  Join thousands of competitive players who trust VGC Coach for their team building and analysis needs.
+                  Join thousands of competitive players who trust VGChat for their team building and analysis needs.
                 </p>
               </div>
               <div className="flex flex-col gap-4 min-[400px]:flex-row pt-4">

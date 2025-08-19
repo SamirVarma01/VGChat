@@ -1,3 +1,5 @@
+import { fetchTeamFromPokepaste } from './pokepaste';
+
 export interface AnalysisPoint {
   point: string;
   reasoning: string;
@@ -61,12 +63,9 @@ export async function analyzeTeam(teamData: string): Promise<LLMAnalysisResult> 
  */
 export async function fetchTeamFromUrl(url: string): Promise<string> {
   try {
-    // For now, we'll just return the URL as the team data
-    // In a real implementation, you'd scrape the Pokepaste site
-    // or use their API if available
-    return `Pokepaste URL: ${url}\n\nNote: Pokepaste URL parsing is not yet implemented. Please paste your team directly.`;
+    return await fetchTeamFromPokepaste(url);
   } catch (error) {
     console.error('Error fetching team from URL:', error);
-    throw new Error('Failed to fetch team from URL');
+    throw new Error(`Failed to fetch team from Pokepaste: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

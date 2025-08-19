@@ -5,4 +5,5 @@ pydantic
 python-dotenv
 openai
 beautifulsoup4
-supabase 
+supabase
+lxml 

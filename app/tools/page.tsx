@@ -90,7 +90,7 @@ export default function ToolsPage() {
             <Zap className="h-5 w-5 text-white" />
           </div>
           <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-transparent">
-            VGC Coach
+            VGChat
           </span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
