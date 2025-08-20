@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Zap, Shield, Target, TrendingUp, Users, BarChart3, Calculator, Trophy } from "lucide-react"
+import { Zap, Shield, Target, TrendingUp, Users } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -27,9 +27,7 @@ export default function HomePage() {
           <Link href="/builder" className="text-sm font-medium hover:text-blue-600 transition-colors">
             Team Builder
           </Link>
-          <Link href="/tools" className="text-sm font-medium hover:text-blue-600 transition-colors">
-            Tools
-          </Link>
+
         </nav>
       </header>
 
@@ -41,7 +39,7 @@ export default function HomePage() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <Badge variant="secondary" className="w-fit">
-                    <Trophy className="w-3 h-3 mr-1" />
+                    <Zap className="w-3 h-3 mr-1" />
                     Powered by AI & Smogon Data
                   </Badge>
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
@@ -205,67 +203,67 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Tools Preview */}
+        {/* VGC Strategy Hub */}
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Professional VGC Tools</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Your VGC Strategy Hub</h2>
               <p className="max-w-[600px] text-gray-600 md:text-xl/relaxed">
-                Access the same tools used by championship players and content creators.
+                Everything you need to build, analyze, and master your competitive Pokemon teams.
               </p>
             </div>
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
-                    <Calculator className="h-8 w-8 text-blue-600" />
+                    <Target className="h-8 w-8 text-blue-600" />
                     <div>
-                      <h3 className="font-semibold">Damage Calculator</h3>
-                      <p className="text-sm text-gray-600">Calculate damage ranges</p>
+                      <h3 className="font-semibold">Team Analyzer</h3>
+                      <p className="text-sm text-gray-600">AI-powered strategic insights</p>
                     </div>
                   </div>
                 </Card>
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
-                    <Zap className="h-8 w-8 text-yellow-600" />
+                    <TrendingUp className="h-8 w-8 text-green-600" />
                     <div>
-                      <h3 className="font-semibold">Speed Tiers</h3>
-                      <p className="text-sm text-gray-600">Compare speed stats</p>
+                      <h3 className="font-semibold">Meta Analysis</h3>
+                      <p className="text-sm text-gray-600">Current tournament trends</p>
                     </div>
                   </div>
                 </Card>
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
-                    <BarChart3 className="h-8 w-8 text-green-600" />
+                    <Users className="h-8 w-8 text-purple-600" />
                     <div>
-                      <h3 className="font-semibold">Usage Stats</h3>
-                      <p className="text-sm text-gray-600">Meta game analysis</p>
+                      <h3 className="font-semibold">Team Builder</h3>
+                      <p className="text-sm text-gray-600">Create winning combinations</p>
                     </div>
                   </div>
                 </Card>
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
-                    <Trophy className="h-8 w-8 text-purple-600" />
+                    <Shield className="h-8 w-8 text-orange-600" />
                     <div>
-                      <h3 className="font-semibold">Tournament Prep</h3>
-                      <p className="text-sm text-gray-600">Practice scenarios</p>
+                      <h3 className="font-semibold">Strategic Planning</h3>
+                      <p className="text-sm text-gray-600">Coverage and synergy analysis</p>
                     </div>
                   </div>
                 </Card>
               </div>
               <div className="flex flex-col justify-center space-y-4">
-                <h3 className="text-2xl font-bold">Built for Competitive Players</h3>
+                <h3 className="text-2xl font-bold">Built for VGC Champions</h3>
                 <p className="text-gray-600">
-                  Our tools are designed with input from top VGC players and are constantly updated to reflect the
-                  current meta game. Whether you're preparing for your first tournament or aiming for Worlds, we have
-                  the insights you need.
+                  Our platform combines cutting-edge AI analysis with deep competitive insights to help you understand 
+                  your team's strengths, identify weaknesses, and develop winning strategies. From local tournaments 
+                  to World Championships, we're here to elevate your competitive game.
                 </p>
                 <div className="flex gap-2">
-                  <Link href="/tools">
-                    <Button>Explore Tools</Button>
-                  </Link>
                   <Link href="/analyzer">
-                    <Button variant="outline">Start Analyzing</Button>
+                    <Button>Start Team Analysis</Button>
+                  </Link>
+                  <Link href="/meta">
+                    <Button variant="outline">View Meta Trends</Button>
                   </Link>
                 </div>
               </div>
